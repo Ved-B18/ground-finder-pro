@@ -14,6 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_date: string
+          created_at: string | null
+          credits_earned: number | null
+          credits_used: number | null
+          id: string
+          price: number
+          status: string
+          time_slot: string
+          updated_at: string | null
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string | null
+          credits_earned?: number | null
+          credits_used?: number | null
+          id?: string
+          price: number
+          status?: string
+          time_slot: string
+          updated_at?: string | null
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string | null
+          credits_earned?: number | null
+          credits_used?: number | null
+          id?: string
+          price?: number
+          status?: string
+          time_slot?: string
+          updated_at?: string | null
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string | null
+          credits_earned: number
+          id: string
+          payment_status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string | null
+          credits_earned: number
+          id?: string
+          payment_status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string | null
+          credits_earned?: number
+          id?: string
+          payment_status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,6 +132,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -62,6 +195,57 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      venues: {
+        Row: {
+          amenities: string[] | null
+          created_at: string | null
+          description: string | null
+          host_id: string
+          id: string
+          images: string[] | null
+          location: string
+          name: string
+          price_per_hour: number
+          rating: number | null
+          sport: string
+          sport_emoji: string | null
+          total_reviews: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          host_id: string
+          id?: string
+          images?: string[] | null
+          location: string
+          name: string
+          price_per_hour: number
+          rating?: number | null
+          sport: string
+          sport_emoji?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          host_id?: string
+          id?: string
+          images?: string[] | null
+          location?: string
+          name?: string
+          price_per_hour?: number
+          rating?: number | null
+          sport?: string
+          sport_emoji?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }

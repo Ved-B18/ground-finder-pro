@@ -14,10 +14,14 @@ import {
   Car, 
   Lightbulb,
   ArrowLeft,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 // Mock data
 const venueDetails = {
@@ -92,9 +96,22 @@ const VenueDetails = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [booking, setBooking] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to book a venue.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     if (!selectedSlot) {
       toast({
         title: "Select a time slot",
@@ -104,10 +121,55 @@ const VenueDetails = () => {
       return;
     }
 
-    toast({
-      title: "Booking Confirmed! 🎉",
-      description: `Your booking for ${venue.name} on ${selectedDate?.toLocaleDateString()} at ${selectedSlot} has been confirmed.`,
-    });
+    if (!selectedDate) {
+      toast({
+        title: "Select a date",
+        description: "Please choose a booking date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBooking(true);
+
+    try {
+      // Create booking in database
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert({
+          user_id: user.id,
+          venue_id: id, // Note: In production, you'd use actual venue IDs from DB
+          booking_date: selectedDate.toISOString().split('T')[0],
+          time_slot: selectedSlot,
+          price: venue.price,
+          status: 'upcoming'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Confirmed! 🎉",
+        description: `Your booking for ${venue.name} on ${selectedDate?.toLocaleDateString()} at ${selectedSlot} has been confirmed. You earned $${(venue.price * 0.05).toFixed(2)} in credits!`,
+      });
+
+      // Reset selections
+      setSelectedSlot("");
+      
+      // Navigate to dashboard after short delay
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error: any) {
+      toast({
+        title: "Booking failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBooking(false);
+    }
   };
 
   return (
@@ -297,8 +359,16 @@ const VenueDetails = () => {
                     size="lg"
                     className="w-full"
                     onClick={handleBooking}
+                    disabled={booking || !selectedSlot}
                   >
-                    Book Now
+                    {booking ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Book Now"
+                    )}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">

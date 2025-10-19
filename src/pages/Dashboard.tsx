@@ -20,10 +20,42 @@ import {
   Users
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  time_slot: string;
+  price: number;
+  credits_earned: number;
+  status: string;
+  created_at: string;
+  venues?: {
+    name: string;
+    sport: string;
+    sport_emoji: string;
+    images: string[];
+  };
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  credits_earned: number;
+  created_at: string;
+  bookings?: {
+    venues?: {
+      name: string;
+    };
+  };
+}
 
 const Dashboard = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -32,7 +64,57 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  // Fetch bookings and payments
+  useEffect(() => {
+    if (user) {
+      fetchBookingsAndPayments();
+    }
+  }, [user]);
+
+  const fetchBookingsAndPayments = async () => {
+    try {
+      // Fetch bookings with venue info
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from("bookings")
+        .select(`
+          *,
+          venues (
+            name,
+            sport,
+            sport_emoji,
+            images
+          )
+        `)
+        .eq("user_id", user?.id)
+        .order("booking_date", { ascending: false });
+
+      if (bookingsError) throw bookingsError;
+      setBookings(bookingsData || []);
+
+      // Fetch payments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from("payments")
+        .select(`
+          *,
+          bookings (
+            venues (
+              name
+            )
+          )
+        `)
+        .eq("user_id", user?.id)
+        .order("created_at", { ascending: false });
+
+      if (paymentsError) throw paymentsError;
+      setPayments(paymentsData || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  if (loading || loadingData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -183,57 +265,79 @@ const Dashboard = () => {
 
             {/* My Bookings */}
             <TabsContent value="bookings" className="space-y-4 animate-fade-in">
-              {mockBookings.map(booking => (
-                <Card key={booking.id} className="p-6 card-hover">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <img
-                      src={booking.image}
-                      alt={booking.venue}
-                      className="w-full md:w-48 h-32 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-xl font-bold mb-1">{booking.venue}</h3>
-                          <p className="text-muted-foreground">{booking.sport}</p>
-                        </div>
-                        <Badge variant={booking.status === "upcoming" ? "default" : "secondary"}>
-                          {booking.status}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2 mt-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(booking.date).toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          {booking.time}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className="text-2xl font-bold text-primary">${booking.price}</span>
-                        {booking.status === "upcoming" && (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">Reschedule</Button>
-                            <Button variant="destructive" size="sm">Cancel</Button>
+              {bookings.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">No bookings yet</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Start exploring venues and make your first booking!
+                  </p>
+                  <Button variant="hero" asChild>
+                    <Link to="/explore">Explore Venues</Link>
+                  </Button>
+                </Card>
+              ) : (
+                bookings.map(booking => (
+                  <Card key={booking.id} className="p-6 card-hover">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {booking.venues?.images?.[0] && (
+                        <img
+                          src={booking.venues.images[0]}
+                          alt={booking.venues.name}
+                          className="w-full md:w-48 h-32 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="text-xl font-bold mb-1">{booking.venues?.name || "Venue"}</h3>
+                            <p className="text-muted-foreground">
+                              {booking.venues?.sport_emoji} {booking.venues?.sport}
+                            </p>
                           </div>
-                        )}
-                        {booking.status === "completed" && (
-                          <Button variant="outline" size="sm">
-                            Book Again
-                          </Button>
-                        )}
+                          <Badge variant={booking.status === "upcoming" ? "default" : "secondary"}>
+                            {booking.status}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2 mt-4">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(booking.booking_date).toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            {booking.time_slot}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-4">
+                          <div>
+                            <span className="text-2xl font-bold text-primary">${booking.price}</span>
+                            <span className="text-sm text-muted-foreground ml-2">
+                              (+${booking.credits_earned} credits earned)
+                            </span>
+                          </div>
+                          {booking.status === "upcoming" && (
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm">Reschedule</Button>
+                              <Button variant="destructive" size="sm">Cancel</Button>
+                            </div>
+                          )}
+                          {booking.status === "completed" && (
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to="/explore">Book Again</Link>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))
+              )}
             </TabsContent>
 
             {/* Payment History */}
@@ -251,22 +355,34 @@ const Dashboard = () => {
                 </p>
               </Card>
 
-              {mockPaymentHistory.map(payment => (
-                <Card key={payment.id} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold mb-1">{payment.description}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(payment.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold">${payment.amount}</p>
-                      <p className="text-sm text-primary">+${payment.credits} credits</p>
-                    </div>
-                  </div>
+              {payments.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">No payment history</h3>
+                  <p className="text-muted-foreground">
+                    Your payment history will appear here after you make bookings.
+                  </p>
                 </Card>
-              ))}
+              ) : (
+                payments.map(payment => (
+                  <Card key={payment.id} className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold mb-1">
+                          {payment.bookings?.venues?.name || "Venue Booking"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(payment.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold">${payment.amount}</p>
+                        <p className="text-sm text-primary">+${payment.credits_earned} credits</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
             </TabsContent>
 
             {/* Saved Venues */}
