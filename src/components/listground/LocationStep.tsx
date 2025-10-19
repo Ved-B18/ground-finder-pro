@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Navigation } from "lucide-react";
-import { APIProvider, Map, AdvancedMarker, MapMouseEvent } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, MapMouseEvent, useApiIsLoaded } from "@vis.gl/react-google-maps";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
@@ -11,21 +11,18 @@ interface Props {
   updateFormData: (updates: Partial<VenueFormData>) => void;
 }
 
-const LocationStep = ({ formData, updateFormData }: Props) => {
-  const autocompleteInputRef = useRef<HTMLInputElement>(null);
-  const [mapCenter, setMapCenter] = useState({ lat: 51.5074, lng: -0.1278 });
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(
-    formData.latitude && formData.longitude
-      ? { lat: formData.latitude, lng: formData.longitude }
-      : null
-  );
+const AddressAutocomplete = ({ formData, updateFormData, inputRef }: { 
+  formData: VenueFormData; 
+  updateFormData: (updates: Partial<VenueFormData>) => void;
+  inputRef: React.RefObject<HTMLInputElement>;
+}) => {
+  const apiIsLoaded = useApiIsLoaded();
 
-  // Initialize Google Places Autocomplete
   useEffect(() => {
-    if (!autocompleteInputRef.current || !window.google) return;
+    if (!inputRef.current || !apiIsLoaded || !window.google?.maps?.places) return;
 
     const autocomplete = new window.google.maps.places.Autocomplete(
-      autocompleteInputRef.current,
+      inputRef.current,
       { types: ["address"] }
     );
 
@@ -63,11 +60,29 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
         latitude: lat,
         longitude: lng,
       });
-
-      setMapCenter({ lat, lng });
-      setMarkerPosition({ lat, lng });
     });
-  }, []);
+  }, [apiIsLoaded, formData, updateFormData, inputRef]);
+
+  return null;
+};
+
+const LocationStep = ({ formData, updateFormData }: Props) => {
+  const autocompleteInputRef = useRef<HTMLInputElement>(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 51.5074, lng: -0.1278 });
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(
+    formData.latitude && formData.longitude
+      ? { lat: formData.latitude, lng: formData.longitude }
+      : null
+  );
+
+  // Update map when coordinates change
+  useEffect(() => {
+    if (formData.latitude && formData.longitude) {
+      const newCenter = { lat: formData.latitude, lng: formData.longitude };
+      setMapCenter(newCenter);
+      setMarkerPosition(newCenter);
+    }
+  }, [formData.latitude, formData.longitude]);
 
   const handleMapClick = (e: MapMouseEvent) => {
     if (!e.detail.latLng) return;
@@ -83,7 +98,13 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
   };
 
   return (
-    <div className="space-y-6">
+    <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
+      <AddressAutocomplete 
+        formData={formData} 
+        updateFormData={updateFormData} 
+        inputRef={autocompleteInputRef}
+      />
+      <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold italic mb-4">Location Details</h2>
         <p className="text-muted-foreground">
@@ -175,22 +196,20 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
           Click on the map or drag the marker to set exact location
         </p>
         <div className="h-96 rounded-lg overflow-hidden border-2 border-border">
-          <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
-            <Map
-              mapId="venue-location-map"
-              defaultCenter={mapCenter}
-              center={mapCenter}
-              defaultZoom={15}
-              gestureHandling="greedy"
-              disableDefaultUI={false}
-              onClick={handleMapClick}
-              style={{ width: "100%", height: "100%" }}
-            >
-              {markerPosition && (
-                <AdvancedMarker position={markerPosition} />
-              )}
-            </Map>
-          </APIProvider>
+          <Map
+            mapId="venue-location-map"
+            defaultCenter={mapCenter}
+            center={mapCenter}
+            defaultZoom={15}
+            gestureHandling="greedy"
+            disableDefaultUI={false}
+            onClick={handleMapClick}
+            style={{ width: "100%", height: "100%" }}
+          >
+            {markerPosition && (
+              <AdvancedMarker position={markerPosition} />
+            )}
+          </Map>
         </div>
         {formData.latitude && formData.longitude && (
           <p className="text-xs text-muted-foreground text-center">
@@ -215,6 +234,7 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
         </p>
       </div>
     </div>
+    </APIProvider>
   );
 };
 
