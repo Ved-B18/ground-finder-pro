@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Star, Filter, X, Navigation } from "lucide-react";
-import GoogleMap from "@/components/GoogleMap";
 
 // Mock venue data with coordinates
 const mockVenues = [
@@ -221,16 +220,6 @@ const Explore = () => {
 
             {/* Main Content */}
             <main className="flex-1">
-              {/* Interactive Map */}
-              <div className="mb-6 animate-fade-in">
-                <GoogleMap 
-                  venues={filteredVenues}
-                  center={{ lat: 40.7128, lng: -74.0060 }}
-                  zoom={12}
-                  height="400px"
-                />
-              </div>
-
               {/* Filter Toggle (Mobile) */}
               <div className="flex items-center justify-between mb-6 lg:hidden">
                 <h2 className="text-xl font-bold">
