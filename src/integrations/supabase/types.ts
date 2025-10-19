@@ -200,52 +200,151 @@ export type Database = {
       }
       venues: {
         Row: {
+          accessibility_features: string[] | null
+          additional_notes: string | null
+          address: string | null
+          age_restriction: string | null
           amenities: string[] | null
+          cancellation_policy: string | null
+          capacity: number | null
+          changing_rooms: boolean | null
+          city: string | null
+          cover_photo: string | null
           created_at: string | null
+          deposit_amount: number | null
+          deposit_required: boolean | null
           description: string | null
+          directions_notes: string | null
+          discount_percentage: number | null
+          equipment_provided: string[] | null
+          extra_services: string[] | null
           host_id: string
+          hourly_rate: number | null
+          house_rules: string | null
           id: string
           images: string[] | null
+          latitude: number | null
+          lighting_available: boolean | null
           location: string
+          longitude: number | null
           name: string
+          operating_hours_end: string | null
+          operating_hours_start: string | null
+          parking_available: boolean | null
+          postal_code: string | null
           price_per_hour: number
           rating: number | null
+          safety_measures: string[] | null
           sport: string
           sport_emoji: string | null
+          status: string | null
+          stripe_account_id: string | null
+          surface_type: string | null
           total_reviews: number | null
+          unavailable_dates: string[] | null
           updated_at: string | null
+          venue_type: string | null
+          video_url: string | null
+          weather_policy: string | null
+          weekend_rate: number | null
         }
         Insert: {
+          accessibility_features?: string[] | null
+          additional_notes?: string | null
+          address?: string | null
+          age_restriction?: string | null
           amenities?: string[] | null
+          cancellation_policy?: string | null
+          capacity?: number | null
+          changing_rooms?: boolean | null
+          city?: string | null
+          cover_photo?: string | null
           created_at?: string | null
+          deposit_amount?: number | null
+          deposit_required?: boolean | null
           description?: string | null
+          directions_notes?: string | null
+          discount_percentage?: number | null
+          equipment_provided?: string[] | null
+          extra_services?: string[] | null
           host_id: string
+          hourly_rate?: number | null
+          house_rules?: string | null
           id?: string
           images?: string[] | null
+          latitude?: number | null
+          lighting_available?: boolean | null
           location: string
+          longitude?: number | null
           name: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
+          parking_available?: boolean | null
+          postal_code?: string | null
           price_per_hour: number
           rating?: number | null
+          safety_measures?: string[] | null
           sport: string
           sport_emoji?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          surface_type?: string | null
           total_reviews?: number | null
+          unavailable_dates?: string[] | null
           updated_at?: string | null
+          venue_type?: string | null
+          video_url?: string | null
+          weather_policy?: string | null
+          weekend_rate?: number | null
         }
         Update: {
+          accessibility_features?: string[] | null
+          additional_notes?: string | null
+          address?: string | null
+          age_restriction?: string | null
           amenities?: string[] | null
+          cancellation_policy?: string | null
+          capacity?: number | null
+          changing_rooms?: boolean | null
+          city?: string | null
+          cover_photo?: string | null
           created_at?: string | null
+          deposit_amount?: number | null
+          deposit_required?: boolean | null
           description?: string | null
+          directions_notes?: string | null
+          discount_percentage?: number | null
+          equipment_provided?: string[] | null
+          extra_services?: string[] | null
           host_id?: string
+          hourly_rate?: number | null
+          house_rules?: string | null
           id?: string
           images?: string[] | null
+          latitude?: number | null
+          lighting_available?: boolean | null
           location?: string
+          longitude?: number | null
           name?: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
+          parking_available?: boolean | null
+          postal_code?: string | null
           price_per_hour?: number
           rating?: number | null
+          safety_measures?: string[] | null
           sport?: string
           sport_emoji?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          surface_type?: string | null
           total_reviews?: number | null
+          unavailable_dates?: string[] | null
           updated_at?: string | null
+          venue_type?: string | null
+          video_url?: string | null
+          weather_policy?: string | null
+          weekend_rate?: number | null
         }
         Relationships: []
       }

@@ -450,9 +450,9 @@ const Dashboard = () => {
 
                   <div className="flex justify-end">
                     <Button variant="hero" className="gap-2" asChild>
-                      <Link to="/venue/create">
+                      <Link to="/list-ground">
                         <Plus className="w-4 h-4" />
-                        Add New Venue
+                        List Your Ground
                       </Link>
                     </Button>
                   </div>
