@@ -1,11 +1,21 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schema for checkout request
+const checkoutRequestSchema = z.object({
+  bookingId: z.string().uuid({ message: "Invalid booking ID format" }),
+  amount: z.number().positive({ message: "Amount must be positive" }).max(100000, { message: "Amount exceeds maximum limit" }),
+  venueName: z.string().trim().min(1, { message: "Venue name is required" }).max(200, { message: "Venue name too long" }),
+  bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Invalid date format (use YYYY-MM-DD)" }),
+  timeSlot: z.string().trim().min(1, { message: "Time slot is required" }).max(50, { message: "Time slot too long" }),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,13 +36,22 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    // Get booking details from request
-    const { bookingId, amount, venueName, bookingDate, timeSlot } = await req.json();
+    // Get and validate booking details from request
+    const body = await req.json();
     
-    if (!bookingId || !amount || !venueName) {
-      throw new Error("Missing required booking details");
+    // Validate request data
+    const validationResult = checkoutRequestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      console.error("Validation error:", firstError.message);
+      return new Response(JSON.stringify({ error: "Invalid request data" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
+    const { bookingId, amount, venueName, bookingDate, timeSlot } = validationResult.data;
     console.log(`Creating checkout for booking ${bookingId}, amount: ${amount}`);
 
     // Initialize Stripe
@@ -84,8 +103,8 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error creating checkout:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to create checkout session";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    // Return generic error message to client, detailed error is logged
+    return new Response(JSON.stringify({ error: "Unable to process checkout. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

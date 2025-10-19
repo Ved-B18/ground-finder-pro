@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
+import { profileUpdateSchema } from "@/lib/validations/profile";
 
 const sports = ["Football", "Cricket", "Tennis", "Basketball", "Badminton", "Volleyball"];
 
@@ -48,23 +49,28 @@ const ProfileSettings = () => {
   };
 
   const handleSave = async () => {
-    if (!fullName.trim()) {
-      toast({
-        title: "Name required",
-        description: "Please enter your full name.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setSaving(true);
 
     try {
-      const { error } = await updateProfile({
+      // Validate profile data
+      const validationResult = profileUpdateSchema.safeParse({
         full_name: fullName,
         avatar_url: avatarUrl,
         preferred_sports: selectedSports,
       });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: "Validation Error",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
+
+      const { error } = await updateProfile(validationResult.data);
 
       if (error) throw error;
 
@@ -79,7 +85,7 @@ const ProfileSettings = () => {
     } catch (error: any) {
       toast({
         title: "Update failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description: "Unable to update profile. Please try again.",
         variant: "destructive",
       });
     } finally {

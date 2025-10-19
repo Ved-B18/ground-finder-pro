@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { signUpSchema, signInSchema } from "@/lib/validations/auth";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -37,10 +38,19 @@ const Auth = () => {
 
     try {
       if (isSignupMode) {
-        if (!name.trim()) {
+        // Validate signup data
+        const validationResult = signUpSchema.safeParse({
+          email,
+          password,
+          name,
+          role,
+        });
+
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
           toast({
-            title: "Name required",
-            description: "Please enter your full name.",
+            title: "Validation Error",
+            description: firstError.message,
             variant: "destructive",
           });
           setLoading(false);
@@ -52,7 +62,7 @@ const Auth = () => {
         if (error) {
           toast({
             title: "Sign up failed",
-            description: error.message || "Something went wrong. Please try again.",
+            description: "Unable to create account. Please try again.",
             variant: "destructive",
           });
         } else {
@@ -62,12 +72,29 @@ const Auth = () => {
           });
         }
       } else {
+        // Validate signin data
+        const validationResult = signInSchema.safeParse({
+          email,
+          password,
+        });
+
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
+          toast({
+            title: "Validation Error",
+            description: firstError.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         const { error } = await signIn(email, password);
 
         if (error) {
           toast({
             title: "Login failed",
-            description: error.message || "Invalid email or password.",
+            description: "Invalid email or password.",
             variant: "destructive",
           });
         } else {

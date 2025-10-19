@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Save, CheckCircle, Loader2 } from "lucide-react";
+import { venueSchema, venueDraftSchema } from "@/lib/validations/venue";
 
 import BasicInfoStep from "@/components/listground/BasicInfoStep";
 import LocationStep from "@/components/listground/LocationStep";
@@ -159,6 +160,22 @@ const ListGround = () => {
     
     setSaving(true);
     try {
+      // Validate draft data (partial validation)
+      const validationResult = venueDraftSchema.safeParse(formData);
+      
+      if (!validationResult.success) {
+        if (!silent) {
+          const firstError = validationResult.error.errors[0];
+          toast({
+            title: "Validation Error",
+            description: firstError.message,
+            variant: "destructive",
+          });
+        }
+        setSaving(false);
+        return;
+      }
+
       const venueData = {
         ...formData,
         host_id: user.id,
@@ -197,7 +214,7 @@ const ListGround = () => {
       if (!silent) {
         toast({
           title: "Save Failed",
-          description: error.message || "Failed to save draft.",
+          description: "Unable to save draft. Please try again.",
           variant: "destructive",
         });
       }
@@ -211,11 +228,17 @@ const ListGround = () => {
     
     setPublishing(true);
     try {
-      // Validate required fields
-      if (!formData.name || !formData.sport || !formData.hourly_rate) {
+      // Validate all required fields
+      const validationResult = venueSchema.safeParse({
+        ...formData,
+        price_per_hour: formData.hourly_rate || 0,
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
         toast({
-          title: "Missing Information",
-          description: "Please fill in all required fields.",
+          title: "Validation Error",
+          description: firstError.message,
           variant: "destructive",
         });
         setPublishing(false);
@@ -256,7 +279,7 @@ const ListGround = () => {
       console.error("Error publishing:", error);
       toast({
         title: "Publish Failed",
-        description: error.message || "Failed to publish listing.",
+        description: "Unable to publish listing. Please try again.",
         variant: "destructive",
       });
     } finally {
