@@ -230,9 +230,11 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <Button variant="outline" className="gap-2">
-                <Settings className="w-4 h-4" />
-                Edit Profile
+              <Button variant="outline" className="gap-2" asChild>
+                <Link to="/settings/profile">
+                  <Settings className="w-4 h-4" />
+                  Edit Profile
+                </Link>
               </Button>
             </div>
           </Card>
@@ -421,37 +423,39 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Host Listings */}
-            {userRole === "host" && (
-              <TabsContent value="listings" className="space-y-6 animate-fade-in">
-                <Card className="p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold italic mb-4">Host Dashboard</h3>
-                      <div className="grid grid-cols-3 gap-6">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Total Bookings</p>
-                          <p className="text-2xl font-bold">45</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Revenue</p>
-                          <p className="text-2xl font-bold text-primary">$2,250</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Avg Rating</p>
-                          <p className="text-2xl font-bold">4.8 ⭐</p>
+              {userRole === "host" && (
+                <TabsContent value="listings" className="space-y-6 animate-fade-in">
+                  <Card className="p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold italic mb-4">Host Dashboard</h3>
+                        <div className="grid grid-cols-3 gap-6">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Total Bookings</p>
+                            <p className="text-2xl font-bold">45</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Revenue</p>
+                            <p className="text-2xl font-bold text-primary">$2,250</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Avg Rating</p>
+                            <p className="text-2xl font-bold">4.8 ⭐</p>
+                          </div>
                         </div>
                       </div>
+                      <BarChart className="w-16 h-16 text-primary hidden md:block" />
                     </div>
-                    <BarChart className="w-16 h-16 text-primary hidden md:block" />
-                  </div>
-                </Card>
+                  </Card>
 
-                <div className="flex justify-end">
-                  <Button variant="hero" className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add New Venue
-                  </Button>
-                </div>
+                  <div className="flex justify-end">
+                    <Button variant="hero" className="gap-2" asChild>
+                      <Link to="/venue/create">
+                        <Plus className="w-4 h-4" />
+                        Add New Venue
+                      </Link>
+                    </Button>
+                  </div>
 
                 {mockHostListings.map(listing => (
                   <Card key={listing.id} className="p-6 card-hover">

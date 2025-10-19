@@ -138,8 +138,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .update(updates)
       .eq("id", user.id);
 
-    if (!error && profile) {
-      setProfile({ ...profile, ...updates });
+    if (!error) {
+      // Refetch profile to update state
+      await fetchProfile(user.id);
     }
 
     return { error };

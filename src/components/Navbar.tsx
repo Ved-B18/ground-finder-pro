@@ -60,6 +60,12 @@ const Navbar = () => {
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
+                      <Link to="/settings/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/dashboard" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         Dashboard

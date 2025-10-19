@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Explore from "./pages/Explore";
 import VenueDetails from "./pages/VenueDetails";
 import Dashboard from "./pages/Dashboard";
+import ProfileSettings from "./pages/ProfileSettings";
+import CreateVenue from "./pages/CreateVenue";
 import MobileNav from "./components/MobileNav";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/explore" element={<Explore />} />
             <Route path="/venue/:id" element={<VenueDetails />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings/profile" element={<ProfileSettings />} />
+            <Route path="/venue/create" element={<CreateVenue />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
