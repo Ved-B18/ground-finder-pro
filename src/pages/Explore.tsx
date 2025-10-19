@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Star, Filter, X, Navigation } from "lucide-react";
+import GoogleMap from "@/components/GoogleMap";
 
-// Mock venue data
+// Mock venue data with coordinates
 const mockVenues = [
   {
     id: 1,
@@ -22,6 +23,8 @@ const mockVenues = [
     location: "Downtown, 2.3 km away",
     image: "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800",
     amenities: ["Changing Rooms", "Parking", "Lighting"],
+    lat: 40.7589,
+    lng: -73.9851,
   },
   {
     id: 2,
@@ -34,6 +37,8 @@ const mockVenues = [
     location: "Northside, 1.8 km away",
     image: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
     amenities: ["Changing Rooms", "Cafe", "Lighting"],
+    lat: 40.7829,
+    lng: -73.9654,
   },
   {
     id: 3,
@@ -46,6 +51,8 @@ const mockVenues = [
     location: "East End, 3.5 km away",
     image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800",
     amenities: ["Changing Rooms", "Parking", "Cafe"],
+    lat: 40.7282,
+    lng: -73.9442,
   },
   {
     id: 4,
@@ -58,6 +65,8 @@ const mockVenues = [
     location: "Westside, 2.1 km away",
     image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800",
     amenities: ["Changing Rooms", "Parking", "Lighting"],
+    lat: 40.7489,
+    lng: -74.0123,
   },
   {
     id: 5,
@@ -70,6 +79,8 @@ const mockVenues = [
     location: "South Plaza, 1.2 km away",
     image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800",
     amenities: ["Changing Rooms", "AC", "Parking"],
+    lat: 40.7029,
+    lng: -74.0134,
   },
   {
     id: 6,
@@ -82,6 +93,8 @@ const mockVenues = [
     location: "Beach Road, 4.2 km away",
     image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800",
     amenities: ["Outdoor", "Parking", "Beach Access"],
+    lat: 40.6782,
+    lng: -73.9442,
   },
 ];
 
@@ -208,20 +221,15 @@ const Explore = () => {
 
             {/* Main Content */}
             <main className="flex-1">
-              {/* Map Placeholder */}
-              <Card className="mb-6 h-96 bg-muted/30 flex items-center justify-center animate-fade-in">
-                <div className="text-center">
-                  <MapPin className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <p className="text-lg font-bold mb-2">Interactive Map</p>
-                  <p className="text-muted-foreground">
-                    Map integration coming soon
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Use My Location
-                  </Button>
-                </div>
-              </Card>
+              {/* Interactive Map */}
+              <div className="mb-6 animate-fade-in">
+                <GoogleMap 
+                  venues={filteredVenues}
+                  center={{ lat: 40.7128, lng: -74.0060 }}
+                  zoom={12}
+                  height="384px"
+                />
+              </div>
 
               {/* Filter Toggle (Mobile) */}
               <div className="flex items-center justify-between mb-6 lg:hidden">
