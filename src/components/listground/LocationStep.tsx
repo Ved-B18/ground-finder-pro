@@ -2,7 +2,9 @@ import { VenueFormData } from "@/pages/ListGround";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
+import { APIProvider, Map, AdvancedMarker, MapMouseEvent } from "@vis.gl/react-google-maps";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   formData: VenueFormData;
@@ -10,6 +12,76 @@ interface Props {
 }
 
 const LocationStep = ({ formData, updateFormData }: Props) => {
+  const autocompleteInputRef = useRef<HTMLInputElement>(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 51.5074, lng: -0.1278 });
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(
+    formData.latitude && formData.longitude
+      ? { lat: formData.latitude, lng: formData.longitude }
+      : null
+  );
+
+  // Initialize Google Places Autocomplete
+  useEffect(() => {
+    if (!autocompleteInputRef.current || !window.google) return;
+
+    const autocomplete = new window.google.maps.places.Autocomplete(
+      autocompleteInputRef.current,
+      { types: ["address"] }
+    );
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      
+      if (!place.geometry?.location) return;
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+
+      // Extract address components
+      let streetAddress = "";
+      let city = "";
+      let postalCode = "";
+
+      place.address_components?.forEach((component) => {
+        const types = component.types;
+        if (types.includes("street_number") || types.includes("route")) {
+          streetAddress += component.long_name + " ";
+        }
+        if (types.includes("locality") || types.includes("postal_town")) {
+          city = component.long_name;
+        }
+        if (types.includes("postal_code")) {
+          postalCode = component.long_name;
+        }
+      });
+
+      updateFormData({
+        address: place.formatted_address || streetAddress.trim(),
+        city: city,
+        postal_code: postalCode,
+        location: place.formatted_address || streetAddress.trim(),
+        latitude: lat,
+        longitude: lng,
+      });
+
+      setMapCenter({ lat, lng });
+      setMarkerPosition({ lat, lng });
+    });
+  }, []);
+
+  const handleMapClick = (e: MapMouseEvent) => {
+    if (!e.detail.latLng) return;
+    
+    const lat = e.detail.latLng.lat;
+    const lng = e.detail.latLng.lng;
+    
+    setMarkerPosition({ lat, lng });
+    updateFormData({
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -19,21 +91,16 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
         </p>
       </div>
 
-      {/* Address */}
+      {/* Address with Google Autocomplete */}
       <div className="space-y-2">
         <Label htmlFor="address" className="required">
-          Full Address *
+          Full Address * <span className="text-xs text-muted-foreground">(Start typing for suggestions)</span>
         </Label>
         <Input
           id="address"
-          placeholder="Street address, building name, etc."
-          value={formData.address}
-          onChange={(e) => {
-            updateFormData({ 
-              address: e.target.value,
-              location: e.target.value // Also update location field
-            });
-          }}
+          ref={autocompleteInputRef}
+          placeholder="Start typing your address..."
+          defaultValue={formData.address}
           className="text-base"
         />
       </div>
@@ -98,17 +165,38 @@ const LocationStep = ({ formData, updateFormData }: Props) => {
         </div>
       </div>
 
-      {/* Map Preview Placeholder */}
-      <div className="p-8 border-2 border-dashed rounded-lg bg-muted/20 text-center">
-        <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          Map preview will appear here
+      {/* Interactive Map */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <Navigation className="w-4 h-4" />
+          Pin Your Location
+        </Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Click on the map or drag the marker to set exact location
         </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {formData.latitude && formData.longitude
-            ? `📍 ${formData.latitude.toFixed(4)}, ${formData.longitude.toFixed(4)}`
-            : "Add coordinates to preview location"}
-        </p>
+        <div className="h-96 rounded-lg overflow-hidden border-2 border-border">
+          <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
+            <Map
+              mapId="venue-location-map"
+              defaultCenter={mapCenter}
+              center={mapCenter}
+              defaultZoom={15}
+              gestureHandling="greedy"
+              disableDefaultUI={false}
+              onClick={handleMapClick}
+              style={{ width: "100%", height: "100%" }}
+            >
+              {markerPosition && (
+                <AdvancedMarker position={markerPosition} />
+              )}
+            </Map>
+          </APIProvider>
+        </div>
+        {formData.latitude && formData.longitude && (
+          <p className="text-xs text-muted-foreground text-center">
+            📍 {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+          </p>
+        )}
       </div>
 
       {/* Directions Notes */}
