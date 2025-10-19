@@ -11,6 +11,7 @@ import VenueDetails from "./pages/VenueDetails";
 import Dashboard from "./pages/Dashboard";
 import ProfileSettings from "./pages/ProfileSettings";
 import CreateVenue from "./pages/CreateVenue";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import MobileNav from "./components/MobileNav";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings/profile" element={<ProfileSettings />} />
             <Route path="/venue/create" element={<CreateVenue />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

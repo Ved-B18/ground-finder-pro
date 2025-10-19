@@ -145,8 +145,8 @@ const VenueDetails = () => {
       
       const actualVenueId = venueIdMap[id || '1'];
 
-      // Create booking in database
-      const { data, error } = await supabase
+      // Create booking in database with pending status
+      const { data: bookingData, error: bookingError } = await supabase
         .from("bookings")
         .insert({
           user_id: user.id,
@@ -154,26 +154,37 @@ const VenueDetails = () => {
           booking_date: selectedDate.toISOString().split('T')[0],
           time_slot: selectedSlot,
           price: venue.price,
-          status: 'upcoming'
+          status: 'pending'
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (bookingError) throw bookingError;
 
-      toast({
-        title: "Booking Confirmed! 🎉",
-        description: `Your booking for ${venue.name} on ${selectedDate?.toLocaleDateString()} at ${selectedSlot} has been confirmed. You earned $${(venue.price * 0.05).toFixed(2)} in credits!`,
+      // Create Stripe checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          bookingId: bookingData.id,
+          amount: venue.price,
+          venueName: venue.name,
+          bookingDate: selectedDate.toLocaleDateString(),
+          timeSlot: selectedSlot
+        }
       });
 
-      // Reset selections
-      setSelectedSlot("");
-      
-      // Navigate to dashboard after short delay
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      if (checkoutError) throw checkoutError;
+
+      // Redirect to Stripe Checkout
+      if (checkoutData?.url) {
+        window.open(checkoutData.url, '_blank');
+        
+        toast({
+          title: "Redirecting to payment",
+          description: "Please complete your payment in the new tab to confirm your booking.",
+        });
+      }
     } catch (error: any) {
+      console.error("Booking error:", error);
       toast({
         title: "Booking failed",
         description: error.message || "Something went wrong. Please try again.",
@@ -384,7 +395,7 @@ const VenueDetails = () => {
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    You won't be charged yet. Earn 5% credits on confirmed bookings!
+                    Secure payment via Stripe. Earn 5% credits on confirmed bookings!
                   </p>
                 </div>
               </Card>
