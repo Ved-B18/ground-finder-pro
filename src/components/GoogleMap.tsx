@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
 import { Card } from "./ui/card";
 
 interface Venue {
@@ -61,42 +61,32 @@ const GoogleMap = ({
     <APIProvider apiKey={apiKey}>
       <div style={{ height, width: "100%", borderRadius: "var(--radius)" }} className="overflow-hidden">
         <Map
-          mapId="sportup-map"
-          center={mapCenter}
-          zoom={zoom}
+          defaultCenter={mapCenter}
+          defaultZoom={zoom}
           gestureHandling="greedy"
           disableDefaultUI={false}
-          styles={[
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ]}
+          mapTypeControl={false}
+          streetViewControl={false}
         >
-          {/* User location marker */}
+          {/* User location marker - blue dot */}
           {userLocation && (
-            <AdvancedMarker position={userLocation}>
-              <Pin
-                background="#3b82f6"
-                borderColor="#1e40af"
-                glyphColor="#fff"
-                scale={1.2}
-              />
-            </AdvancedMarker>
+            <Marker
+              position={userLocation}
+              title="Your Location"
+            />
           )}
 
-          {/* Venue markers */}
+          {/* Venue markers with sport emojis */}
           {venues.map((venue) => (
-            <AdvancedMarker
+            <Marker
               key={venue.id}
               position={{ lat: venue.lat, lng: venue.lng }}
               title={venue.name}
-            >
-              <div className="bg-background border-2 border-primary rounded-full p-2 shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                <span className="text-2xl">{venue.sportEmoji}</span>
-              </div>
-            </AdvancedMarker>
+              label={{
+                text: venue.sportEmoji,
+                fontSize: "24px",
+              }}
+            />
           ))}
         </Map>
       </div>
