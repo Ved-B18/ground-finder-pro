@@ -28,7 +28,7 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/explore");
+      navigate("/");
     }
   }, [user, navigate]);
 
