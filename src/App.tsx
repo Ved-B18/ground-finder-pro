@@ -10,7 +10,6 @@ import Explore from "./pages/Explore";
 import VenueDetails from "./pages/VenueDetails";
 import Dashboard from "./pages/Dashboard";
 import ProfileSettings from "./pages/ProfileSettings";
-import CreateVenue from "./pages/CreateVenue";
 import ListGround from "./pages/ListGround";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import MobileNav from "./components/MobileNav";
@@ -32,7 +31,6 @@ const App = () => (
             <Route path="/venue/:id" element={<VenueDetails />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings/profile" element={<ProfileSettings />} />
-            <Route path="/venue/create" element={<CreateVenue />} />
             <Route path="/list-ground" element={<ListGround />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
