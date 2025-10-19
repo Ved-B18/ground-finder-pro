@@ -364,6 +364,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_successful_payment: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "player" | "host"

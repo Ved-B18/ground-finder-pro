@@ -24,6 +24,16 @@ const PaymentSuccess = () => {
 
   const fetchBookingDetails = async (bookingId: string) => {
     try {
+      // Process the successful payment (creates payment record, awards credits, confirms booking)
+      const { error: processError } = await supabase
+        .rpc('process_successful_payment', { p_booking_id: bookingId });
+
+      if (processError) {
+        console.error("Error processing payment:", processError);
+        // Continue to show booking details even if payment processing fails
+      }
+
+      // Fetch booking details
       const { data, error } = await supabase
         .from("bookings")
         .select(`
@@ -39,12 +49,6 @@ const PaymentSuccess = () => {
         .single();
 
       if (error) throw error;
-      
-      // Update booking status to confirmed
-      await supabase
-        .from("bookings")
-        .update({ status: "confirmed" })
-        .eq("id", bookingId);
 
       setBookingDetails(data);
     } catch (error) {
