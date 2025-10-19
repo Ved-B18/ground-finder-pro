@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,18 +19,33 @@ import {
   Star,
   Users
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
-  const [userRole] = useState<"player" | "host">("player"); // Can be toggled based on actual auth
+  const { user, profile, userRole, loading } = useAuth();
+  const navigate = useNavigate();
 
-  // Mock user data
-  const user = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-    credits: 25,
-    role: userRole,
-  };
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return null;
+  }
 
   const mockBookings = [
     {
@@ -115,19 +130,21 @@ const Dashboard = () => {
           <Card className="p-8 mb-8 animate-fade-in">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+                  {profile.full_name[0]?.toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold italic mb-2">{user.name}</h1>
+                <h1 className="text-3xl font-bold italic mb-2">{profile.full_name}</h1>
                 <p className="text-muted-foreground mb-3">{user.email}</p>
                 <div className="flex items-center gap-4">
                   <Badge variant="secondary" className="text-sm">
-                    {user.role === "player" ? "Player" : "Venue Host"}
+                    {userRole === "player" ? "Player" : "Venue Host"}
                   </Badge>
                   <div className="flex items-center gap-2 text-primary font-bold">
                     <CreditCard className="w-5 h-5" />
-                    ${user.credits} Credits
+                    ${profile.credits} Credits
                   </div>
                 </div>
               </div>
@@ -139,7 +156,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Tabs */}
-          <Tabs defaultValue={userRole === "player" ? "bookings" : "listings"} className="space-y-6">
+          <Tabs defaultValue="bookings" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 h-auto">
               <TabsTrigger value="bookings" className="gap-2">
                 <Calendar className="w-4 h-4" />
@@ -225,7 +242,7 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground mb-1">Total Credits Earned</p>
-                    <p className="text-3xl font-bold text-primary">${user.credits}</p>
+                    <p className="text-3xl font-bold text-primary">${profile.credits}</p>
                   </div>
                   <CreditCard className="w-16 h-16 text-primary" />
                 </div>

@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Mail, Lock, User } from "lucide-react";
+import { MapPin, Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -17,25 +18,74 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, signIn, user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simulate authentication
-    toast({
-      title: isSignupMode ? "Account created!" : "Welcome back!",
-      description: isSignupMode 
-        ? "Your SportUp account has been created successfully." 
-        : "You've been logged in successfully.",
-    });
-    
-    // Navigate to explore page
-    setTimeout(() => {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
       navigate("/explore");
-    }, 1000);
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isSignupMode) {
+        if (!name.trim()) {
+          toast({
+            title: "Name required",
+            description: "Please enter your full name.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signUp(email, password, name, role);
+
+        if (error) {
+          toast({
+            title: "Sign up failed",
+            description: error.message || "Something went wrong. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Account created! 🎉",
+            description: "Welcome to SportUp! You're now logged in.",
+          });
+        }
+      } else {
+        const { error } = await signIn(email, password);
+
+        if (error) {
+          toast({
+            title: "Login failed",
+            description: error.message || "Invalid email or password.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Welcome back! 👋",
+            description: "You've been logged in successfully.",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -138,8 +188,15 @@ const Auth = () => {
             </div>
           </div>
 
-          <Button type="submit" variant="hero" className="w-full" size="lg">
-            {isSignupMode ? "Create Account" : "Log In"}
+          <Button type="submit" variant="hero" className="w-full" size="lg" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isSignupMode ? "Creating Account..." : "Logging In..."}
+              </>
+            ) : (
+              isSignupMode ? "Create Account" : "Log In"
+            )}
           </Button>
         </form>
 
