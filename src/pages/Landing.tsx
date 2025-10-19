@@ -69,7 +69,7 @@ const Landing = () => {
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild className="min-w-[200px] border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold">
-                <Link to="/auth?host=true">List Your Ground</Link>
+                <Link to="/list-ground">List Your Ground</Link>
               </Button>
             </div>
           </div>
