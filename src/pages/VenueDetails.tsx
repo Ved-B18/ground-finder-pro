@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 
 // Mock data
 const venueDetails = {
@@ -34,6 +35,8 @@ const venueDetails = {
     reviewCount: 124,
     location: "123 Downtown Street, City Center",
     distance: "2.3 km away",
+    latitude: 51.5074,
+    longitude: -0.1278,
     description: "Premium football ground with natural grass surface, perfect for competitive matches and training sessions. The facility features professional-grade turf, changing rooms, and ample parking space.",
     images: [
       "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=800",
@@ -260,6 +263,34 @@ const VenueDetails = () => {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="w-4 h-4" />
                   <span className="text-sm">{venue.location}</span>
+                </div>
+              </Card>
+
+              {/* Interactive Map */}
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold italic mb-4">Location</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                    <MapPin className="w-5 h-5" />
+                    <span>{venue.location}</span>
+                  </div>
+                  <div className="h-96 rounded-lg overflow-hidden border-2 border-border">
+                    <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""}>
+                      <Map
+                        mapId="venue-location-map"
+                        defaultCenter={{ lat: venue.latitude, lng: venue.longitude }}
+                        defaultZoom={15}
+                        gestureHandling="greedy"
+                        disableDefaultUI={false}
+                        style={{ width: "100%", height: "100%" }}
+                      >
+                        <AdvancedMarker position={{ lat: venue.latitude, lng: venue.longitude }} />
+                      </Map>
+                    </APIProvider>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    📍 {venue.latitude.toFixed(6)}, {venue.longitude.toFixed(6)}
+                  </p>
                 </div>
               </Card>
 
