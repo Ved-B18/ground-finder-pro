@@ -170,7 +170,7 @@ const VenueDetails = () => {
           bookingId: bookingData.id,
           amount: venue.price,
           venueName: venue.name,
-          bookingDate: selectedDate.toLocaleDateString(),
+          bookingDate: selectedDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
           timeSlot: selectedSlot
         }
       });
